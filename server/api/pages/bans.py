@@ -80,7 +80,7 @@
 #             $ref: '#/components/schemas/Error'
 #       description: unexpected error
 #   summary: Add a banmlist entry
-# 
+#
 ########################################################################
 
 
@@ -153,7 +153,7 @@ def remove_whitelist(session, white):
 def run(API, environ, indata, session):
     global BANLIST, BAN_TS
     method = environ['REQUEST_METHOD']
-    
+
     # Adding a new entry?
     if method == "PUT":
         ip = indata['source']
@@ -162,11 +162,11 @@ def run(API, environ, indata, session):
         force = indata.get('force', False)
         submitter = environ.get('HTTP_PROXY_USER', 'Admin')
         reason = "Banned by %s: %s" % (submitter, reason)
-        
+
         # Check if ban already exists
         if find_rule(session.DB, 'ban', ip):
             raise API.exception(400, "A ban already exists for this IP!")
-        
+
         # Check if this IP is within a whitelisted space
         block = plugins.worker.to_block(ip)
         whitelist = plugins.worker.get_whitelist(session.DB)
@@ -181,7 +181,7 @@ def run(API, environ, indata, session):
                     remove_whitelist(session, white)
                 else:
                     raise API.exception(403, "This ban would cancel whitelist entry for %s, cannot mix" % white)
-        
+
         # all good? Okay, add the entry then
         entry = {
             'ip': ip,
@@ -194,8 +194,8 @@ def run(API, environ, indata, session):
         plugins.worker.addnote(session.DB, 'manual', "Manual ban for %s added by %s: %s" % (ip, submitter, reason))
         yield json.dumps({"message": "Entry added!"})
         return
-    
-    
+
+
     # Delete an entry
     if method == "DELETE":
         submitter = environ.get('HTTP_PROXY_USER', 'Admin')
@@ -219,7 +219,7 @@ def run(API, environ, indata, session):
             return
         else:
             raise API.exception(400, "Invalid rule ID specified!")
-    
+
     # Display the current banlist entries
     if method == "GET":
         # Only re-fetch banlist every 30 secs, save processing power!
@@ -234,7 +234,7 @@ def run(API, environ, indata, session):
                         }
                     }
                 )
-        
+
             BANLIST = []
             for hit in res['hits']['hits']:
                 doc = hit['_source']
@@ -246,13 +246,12 @@ def run(API, environ, indata, session):
                     doc['rid'] = hit['_id']
                     BANLIST.append(doc)
             BAN_TS = time.time()
-            
+
         JSON_OUT = {
             'bans': BANLIST
         }
         yield json.dumps(JSON_OUT)
         return
-    
+
     # Finally, if we hit a method we don't know, balk!
     yield API.exception(400, "I don't know this request method!!")
-    

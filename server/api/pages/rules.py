@@ -80,7 +80,7 @@
 #             $ref: '#/components/schemas/Error'
 #       description: unexpected error
 #   summary: Adds or overrides a ruleset
-# 
+#
 ########################################################################
 
 
@@ -102,7 +102,7 @@ import uuid
 def run(API, environ, indata, session):
     global WHITE_CACHE, WHITE_TS
     method = environ['REQUEST_METHOD']
-    
+
     # Adding a new entry?
     if method == "PUT":
         rid = indata.get('rid')
@@ -112,7 +112,7 @@ def run(API, environ, indata, session):
         span = indata.get('span')
         limit = indata.get('limit')
         query = indata.get('query')
-        
+
         # all good? Okay, add the entry then
         entry = {
             'name': name,
@@ -126,11 +126,11 @@ def run(API, environ, indata, session):
             plugins.worker.addnote(session.DB, 'manual', "%s made a new ruleset %s (%s)" % (submitter, rid, name))
         else:
             plugins.worker.addnote(session.DB, 'manual', "%s updated ruleset %s (%s)" % (submitter, rid, name))
-        
+
         session.DB.ES.index(index=session.DB.dbname, doc_type = 'rule', id = rid, body = entry, refresh = 'wait_for')
         yield json.dumps({"message": "Ruleset added!"})
         return
-        
+
     # Delete an entry
     if method == "DELETE":
         rid = indata.get('rid')
@@ -143,7 +143,7 @@ def run(API, environ, indata, session):
             yield json.dumps({"message": "Entry removed"})
             return
         yield API.exception(400, "Invalid rule ID passed!")
-        
+
     # Display the current ruleset entries
     if method == "GET":
         rules = []
@@ -167,7 +167,6 @@ def run(API, environ, indata, session):
         }
         yield json.dumps(JSON_OUT)
         return
-    
+
     # Finally, if we hit a method we don't know, balk!
     yield API.exception(400, "I don't know this request method!!")
-    

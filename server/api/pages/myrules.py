@@ -39,7 +39,7 @@
 #             $ref: '#/components/schemas/Error'
 #       description: unexpected error
 #   summary: Set a host's iptables list
-# 
+#
 ########################################################################
 
 
@@ -65,7 +65,7 @@ BAN_CACHE_TIME = 30
 def run(API, environ, indata, session):
     global BANLIST, BAN_TS
     method = environ['REQUEST_METHOD']
-    
+
     # Adding a new entry?
     if method == "PUT":
         rules = indata.get('iptables')
@@ -81,7 +81,6 @@ def run(API, environ, indata, session):
             session.DB.ES.index(index=session.DB.dbname, doc_type = 'iptables', id = iid, body = ipdoc)
         yield json.dumps({"message": "Iptables updated"})
         return
-    
+
     # Finally, if we hit a method we don't know, balk!
     yield API.exception(400, "I don't know this request method!!")
-    

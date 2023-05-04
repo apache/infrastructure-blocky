@@ -216,7 +216,7 @@ def construct_query(doctype, query, initial_terms = []):
                                 }
                             }
                         }
-                    } 
+                    }
                 }
             },
             "size": 0
@@ -256,10 +256,10 @@ def start(DB, config, pidfile):
             doc = hit['_source']
             doc['rid'] = hit['_id']
             rules.append(doc)
-        
+
         # Prep list of bad IPs to block
         bad_ips = []
-        
+
         # Prep list of indices to check against, for performance reasons
         d = datetime.datetime.utcnow()
         t = []
@@ -267,8 +267,8 @@ def start(DB, config, pidfile):
             t.append(d.strftime("loggy-%Y.%m.%d"))
             d -= datetime.timedelta(days = 1)
         threes = ",".join(t) # Past three days
-        
-        
+
+
         # Now, run each rule
         for rule in rules:
             limit = rule.get('limit')
@@ -280,7 +280,7 @@ def start(DB, config, pidfile):
             if limit and span and query:
                 print("Running rule '%s'..." % name)
 
-                
+
                 # Start with timestamp terms
                 terms = []
                 terms.append({
@@ -290,7 +290,7 @@ def start(DB, config, pidfile):
                         }
                     }
                 })
-                
+
                 # For each term in our blocky query, convert to ES terms
                 q = construct_query(doctype, query, terms)
                 # If valid query, run it and find bad IPs
@@ -305,7 +305,7 @@ def start(DB, config, pidfile):
                                     r = "%s (%u >= limit of %u)" % (name, c, limit)
                                     bad_ips.append({'ip': i, 'reason': r, 'target': '*', 'rid': rid, 'epoch': int(time.time())})
                                     print("Found offender: %s; %s" % (i, r))
-                        
+
                         elif doctype == 'httpd_traffic':
                             for suspect in res['aggregations']['byip']['clients']['buckets']:
                                 c = suspect['traffic']['value']
@@ -314,12 +314,12 @@ def start(DB, config, pidfile):
                                     r = "%s (%u >= limit of %u)" % (name, c, limit)
                                     bad_ips.append({'ip': i, 'reason': r, 'target': '*', 'rid': rid, 'epoch': int(time.time())})
                                     print("Found offender: %s; %s" % (i, r))
-        
+
         print("Done with rules after %u seconds, found %u offenders" % (time.time() - now, len(bad_ips)))
         # Now we have a list of bad IPs.
         # Compare against whitelist, filter out any that are there
         # Block the rest
-        
+
         # Fetch whitelist
         whitelist = get_whitelist(DB)
 
@@ -335,7 +335,7 @@ def start(DB, config, pidfile):
                     break
             if not whitelisted:
                 to_ban.append(bad_ip)
-        
+
         # For each IP we should be banning, ban if not already banned
         for bad_ip in to_ban:
             banid = make_sha1(bad_ip['ip'])
@@ -350,7 +350,7 @@ def start(DB, config, pidfile):
                 if not DEBUG:
                     addnote(DB, 'autoban', "Banning %s on %s as %s (%s)" % (bad_ip['ip'], bad_ip['target'], banid, bad_ip['reason']))
                     DB.ES.index(index=DB.dbname, doc_type = 'ban', id = banid, body = bad_ip)
-        
+
         # Now sleep for a minute
         time.sleep(120)
-        
+

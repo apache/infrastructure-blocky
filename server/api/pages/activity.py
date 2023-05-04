@@ -34,7 +34,7 @@
 #   security:
 #   - cookieAuth: []
 #   summary: Displays the current activity entries
-# 
+#
 ########################################################################
 
 
@@ -53,7 +53,7 @@ import plugins.worker
 def run(API, environ, indata, session):
     global WHITE_CACHE, WHITE_TS
     method = environ['REQUEST_METHOD']
-    
+
     # Display the current activity entries
     if method == "GET":
         activity = []
@@ -70,18 +70,17 @@ def run(API, environ, indata, session):
                     }
                 }
             )
-    
+
         for hit in res['hits']['hits']:
              doc = hit['_source']
              if doc['ntype'] in ['manual', 'client', 'system', 'autoban']:
                 activity.append(doc)
-         
+
         JSON_OUT = {
             'activity': activity
         }
         yield json.dumps(JSON_OUT)
         return
-    
+
     # Finally, if we hit a method we don't know, balk!
     yield API.exception(400, "I don't know this request method!!")
-    

@@ -80,7 +80,7 @@
 #             $ref: '#/components/schemas/Error'
 #       description: unexpected error
 #   summary: Add a whitelist entry
-# 
+#
 ########################################################################
 
 
@@ -117,7 +117,7 @@ def remove_ban(session, ban):
 def run(API, environ, indata, session):
     global WHITE_CACHE, WHITE_TS
     method = environ['REQUEST_METHOD']
-    
+
     # Adding a new entry?
     if method == "PUT":
         ip = indata['source']
@@ -127,7 +127,7 @@ def run(API, environ, indata, session):
         submitter = environ.get('HTTP_PROXY_USER', 'Admin')
         force = indata.get('force', False)
         reason = "Whitelisted by %s: %s" % (submitter, reason)
-        
+
         # Check if this IP is within a banned space
         block = plugins.worker.to_block(ip)
         banlist = plugins.worker.get_banlist(session.DB)
@@ -142,7 +142,7 @@ def run(API, environ, indata, session):
                     remove_ban(session, str(ban))
                 else:
                     raise API.exception(403, "This whitelist would cancel ban entry for %s, cannot mix (use force push?)" % ban)
-        
+
         # all good? Okay, add the entry then
         entry = {
             'ip': ip,
@@ -156,7 +156,7 @@ def run(API, environ, indata, session):
         plugins.worker.addnote(session.DB, 'manual', "Whitelisting %s per %s: %s" % (ip, submitter, reason))
         yield json.dumps({"message": "Entry added!"})
         return
-        
+
     # Delete an entry
     if method == "DELETE":
         rid = indata.get('rule')
@@ -166,7 +166,7 @@ def run(API, environ, indata, session):
                 doc = session.DB.ES.get(index=session.DB.dbname, doc_type='whitelist', id = rid)['_source']
                 plugins.worker.addnote(session.DB, 'manual', "Whitelisting rule %s for %s removed by %s" % (rid, doc.get('ip', '??'), submitter))
                 session.DB.ES.delete(index=session.DB.dbname, doc_type='whitelist', id = rid, refresh = 'wait_for')
-                
+
             yield json.dumps({"message": "Entry removed"})
             return
         elif re.match(r"^[a-f0-9.:_]+$", rid):
@@ -177,7 +177,7 @@ def run(API, environ, indata, session):
             yield json.dumps({"message": "Entry removed"})
             return
         yield API.exception(400, "Invalid rule ID passed!")
-        
+
     # Display the current whitelist entries
     if method == "GET":
         if WHITE_TS < (time.time() - WHITE_CACHE_TIME) or 'Mozilla' in environ.get('HTTP_USER_AGENT', 'python'):
@@ -191,7 +191,7 @@ def run(API, environ, indata, session):
                         }
                     }
                 )
-        
+
             WHITE_CACHE = []
             WHITE_TS = time.time()
             for hit in res['hits']['hits']:
@@ -199,13 +199,12 @@ def run(API, environ, indata, session):
                 doc['rid'] = hit['_id']
                 doc['ip'] = doc['ip'].strip() # backwards compat fix
                 WHITE_CACHE.append(doc)
-            
+
         JSON_OUT = {
             'whitelist': WHITE_CACHE
         }
         yield json.dumps(JSON_OUT)
         return
-    
+
     # Finally, if we hit a method we don't know, balk!
     yield API.exception(400, "I don't know this request method!!")
-    

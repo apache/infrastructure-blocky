@@ -92,11 +92,11 @@ class BlockyAPIWrapper:
         self.API = BlockyOpenAPI
         self.path = path
         self.exception = plugins.openapi.BlockyHTTPError
-     
+
     def __call__(self, environ, start_response, session):
         """Run the function, return response OR return stacktrace"""
         response = None
-        
+
         # CORS IGNORE
         if environ.get('REQUEST_METHOD', 'GET') == 'OPTIONS':
             start_response('200 Fine, whatever', [
@@ -106,7 +106,7 @@ class BlockyAPIWrapper:
                 "reason": "You're probably just being silly..."
             })
             return
-        
+
         try:
             # Read JSON client data if any
             try:
@@ -118,7 +118,7 @@ class BlockyAPIWrapper:
             if requestBody and len(requestBody) > 0:
                 try:
                     formdata = json.loads(requestBody.decode('utf-8'))
-                    
+
                 except json.JSONDecodeError as err:
                     start_response('400 Invalid request', [
                                ('Content-Type', 'application/json')])
@@ -132,8 +132,8 @@ class BlockyAPIWrapper:
                 xdata = cgi.parse_qs(environ.get('QUERY_STRING'))
                 for k, v in xdata.items():
                     formdata[k] = v[0]
-            
-            
+
+
             # Validate URL against OpenAPI specs
             try:
                 self.API.validate(environ['REQUEST_METHOD'], self.path, formdata)
@@ -145,7 +145,7 @@ class BlockyAPIWrapper:
                     "reason": err.message
                 })
                 return
-            
+
             # Call page with env, SR and form data
             try:
                 response = self.func(self, environ, formdata, session)
@@ -167,7 +167,7 @@ class BlockyAPIWrapper:
                     "reason": err.message
                 }, indent = 4) + "\n"
                 return
-            
+
         except:
             err_type, err_value, tb = sys.exc_info()
             traceback_output = ['API traceback:']
@@ -184,8 +184,8 @@ class BlockyAPIWrapper:
                 "code": "500",
                 "reason": '\n'.join(traceback_output)
             })
-    
-        
+
+
 def fourohfour(environ, start_response):
     """A very simple 404 handler"""
     start_response("404 Not Found", [
@@ -197,7 +197,7 @@ def fourohfour(environ, start_response):
     }, indent = 4) + "\n"
     return
 
-    
+
 def application(environ, start_response):
     """
     This is the main handler. Every API call goes through here.
@@ -225,7 +225,7 @@ def application(environ, start_response):
                 elif isinstance(bucket, bytes):
                     yield bucket
             return
-            
+
     for bucket in fourohfour(environ, start_response):
         yield bytes(bucket, encoding = 'utf-8')
 

@@ -39,7 +39,7 @@
 #             $ref: '#/components/schemas/Error'
 #       description: unexpected error
 #   summary: Search for whether a user was blocked via fail2ban
-# 
+#
 ########################################################################
 
 
@@ -66,7 +66,7 @@ def find_rule(DB, doctype, ip):
         return DB.ES.get(index=DB.dbname, doc_type = doctype, id = bid)
     if DB.ES.exists(index=DB.dbname, doc_type = doctype, id = bid2):
         return DB.ES.get(index=DB.dbname, doc_type = doctype, id = bid2)
-    
+
     # Blocky/1 ban doc
     oid = str(ip).replace('/', '_').replace('_32', '').replace('_128', '')
     if DB.ES.exists(index=DB.dbname, doc_type = doctype, id = oid):
@@ -75,7 +75,7 @@ def find_rule(DB, doctype, ip):
 
 def run(API, environ, indata, session):
     method = environ['REQUEST_METHOD']
-    
+
     # Searching? :)
     if method == "POST":
         found = {
@@ -84,8 +84,8 @@ def run(API, environ, indata, session):
             'iptables': [],
         }
         user = indata.get('source')
-        
-        
+
+
         # Prep list of indices to check against, for performance reasons
         d = datetime.datetime.utcnow()
         t = []
@@ -93,7 +93,7 @@ def run(API, environ, indata, session):
             t.append(d.strftime("loggy-%Y.%m.%d"))
             d -= datetime.timedelta(days = 1)
         threes = ",".join(t) # Past seven days
-        
+
         res = session.DB.ES.search(
                     index=threes,
                     size = 500,
@@ -104,12 +104,12 @@ def run(API, environ, indata, session):
                                     {
                                         "match": {
                                             "message": "AH01617"
-                                        }                                        
+                                        }
                                     },
                                     {
                                         "match": {
                                             "message": user
-                                        }                                        
+                                        }
                                     },
                                     {
                                     "term": {
@@ -122,19 +122,19 @@ def run(API, environ, indata, session):
                     }
                 )
         ips = {}
-        
+
         for hit in res['hits']['hits']:
             doc = hit['_source']
             if doc.get('module') == 'auth_basic:error' and user in doc.get('message') and 'client_ip' in doc:
                 ips[doc['client_ip']] = doc['message']
-        
-                
+
+
         #get whitelist and banlist, plus iptables rules
         whitelist = plugins.worker.get_whitelist(session.DB)
         banlist = plugins.worker.get_banlist(session.DB)
         iptables = plugins.worker.get_iptables(session.DB)
-        
-                
+
+
         for ip, msg in ips.items():
             print(ip)
             me = plugins.worker.to_block(ip) # queried IP as IPNetwork object
@@ -146,7 +146,7 @@ def run(API, environ, indata, session):
                         doc = rule['_source']
                         doc['rid'] = rule['_id']
                         found['whitelist'].append(doc)
-            
+
             # Find all banlist entries that touch on this
             for block in banlist:
                 if me in block or block in me or me == block:
@@ -157,7 +157,7 @@ def run(API, environ, indata, session):
                         if not 'ip' in doc:
                             doc['ip'] = doc['rid'].replace('_', '/')
                         found['banlist'].append(doc)
-            
+
             # Find any iptables rules that may have it as well (max 10)
             found_iptables = 0
             anything = netaddr.IPNetwork("0.0.0.0/0")
@@ -178,7 +178,6 @@ def run(API, environ, indata, session):
 
         yield json.dumps({"results": found}, indent = 2)
         return
-    
+
     # Finally, if we hit a method we don't know, balk!
     yield API.exception(400, "I don't know this request method!!")
-    
