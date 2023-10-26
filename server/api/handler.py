@@ -50,7 +50,7 @@ def rmpidfile():
     try:
         print("Removing BG thread pid file...")
         os.unlink(pidfile)
-    except:
+    except Exception: # TODO: narrow further to expected Exceptions
         pass
 
 if not os.path.exists(pidfile) or os.path.getmtime(pidfile) < (now - 60):
@@ -168,7 +168,7 @@ class BlockyAPIWrapper:
                 }, indent = 4) + "\n"
                 return
 
-        except:
+        except Exception: # TODO: narrow further to expected Exceptions
             err_type, err_value, tb = sys.exc_info()
             traceback_output = ['API traceback:']
             traceback_output += traceback.format_tb(tb)
@@ -177,7 +177,7 @@ class BlockyAPIWrapper:
             try:
                 start_response('500 Internal Server Error', [
                                ('Content-Type', 'application/json')])
-            except:
+            except Exception: # TODO: narrow further to expected Exceptions
                 pass
             yield json.dumps({
                 "API": "Blocky API 1.0",
@@ -216,7 +216,7 @@ def application(environ, start_response):
                     session.headers.append(bucket)
                     try:
                         start_response("200 Okay", session.headers)
-                    except:
+                    except Exception: # TODO: narrow further to expected Exceptions
                         pass
                 a += 1
                 # WSGI prefers byte strings, so convert if regular py3 string

@@ -343,7 +343,7 @@ def start(DB, config, pidfile):
                 rdns = bad_ip['ip']
                 try:
                     rdns = socket.gethostbyaddr(bad_ip['ip'])[0]
-                except:
+                except Exception: # Don't catch fatal exceptions
                     pass # don't care, at all
                 bad_ip['dns'] = rdns if rdns else bad_ip['ip']
                 print("Banning %s as %s" % (bad_ip['ip'], banid))

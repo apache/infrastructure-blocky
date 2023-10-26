@@ -47,7 +47,7 @@ class BlockySession(object):
                 self.DB.ES.delete(index=self.DB.dbname, doc_type='uisession', id = self.cookie)
                 self.cookie = None
                 self.user = None
-            except:
+            except Exception: # TODO: narrow further to expected Exceptions
                 pass
     def newCookie(self):
         cookie = uuid.uuid4()
