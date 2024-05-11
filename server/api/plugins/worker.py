@@ -286,7 +286,7 @@ def start(DB, config, pidfile):
                 terms.append({
                     "range": {
                         "@timestamp": {
-                            "gt": ("now-%uh" % span)
+                            "gt": ("now-%dh" % span)
                         }
                     }
                 })
