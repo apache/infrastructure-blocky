@@ -228,7 +228,7 @@ def run_legacy_checks():
    mylist = getbans()
    try:
       actions = requests.get(apiurl).json()
-      syslog.syslog(syslog.LOG_INFO, "Fetched a total of %u firewall actions from %s" % (len(actions), apiurl))
+      syslog.syslog(syslog.LOG_INFO, "Fetched a total of %d firewall actions from %s" % (len(actions), apiurl))
    except Exception: # TODO: narrow further to expected Exceptions
       syslog.syslog(syslog.LOG_WARNING, "Could not retrieve blocky actions list from %s - server down??!" % apiurl)
 

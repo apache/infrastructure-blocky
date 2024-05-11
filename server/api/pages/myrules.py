@@ -71,7 +71,7 @@ def run(API, environ, indata, session):
         rules = indata.get('iptables')
         hostname = indata.get('hostname')
         if hostname and type(rules) is list: #just in case!
-            print("Got %u rules from %s" % (len(rules), hostname))
+            print("Got %d rules from %s" % (len(rules), hostname))
             iid = plugins.worker.make_sha1(hostname)
             ipdoc = {
                 'hostname': hostname,
