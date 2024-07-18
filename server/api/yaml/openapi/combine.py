@@ -80,7 +80,7 @@ def deconstruct():
                 f.write("########################################################################\n")
                 f.write(yaml.dump(defs, default_flow_style=False))
                 f.close()
-    print("Dumped %u definitions." % noDefs)
+    print("Dumped %d definitions." % noDefs)
 
 def construct():
     yml = {}

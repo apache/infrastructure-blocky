@@ -286,7 +286,7 @@ def start(DB, config, pidfile):
                 terms.append({
                     "range": {
                         "@timestamp": {
-                            "gt": ("now-%uh" % span)
+                            "gt": ("now-%dh" % span)
                         }
                     }
                 })
@@ -302,7 +302,7 @@ def start(DB, config, pidfile):
                                 c = suspect['doc_count']
                                 i = suspect['key']
                                 if c > limit:
-                                    r = "%s (%u >= limit of %u)" % (name, c, limit)
+                                    r = "%s (%d >= limit of %d)" % (name, c, limit)
                                     bad_ips.append({'ip': i, 'reason': r, 'target': '*', 'rid': rid, 'epoch': int(time.time())})
                                     print("Found offender: %s; %s" % (i, r))
 
@@ -311,11 +311,11 @@ def start(DB, config, pidfile):
                                 c = suspect['traffic']['value']
                                 i = suspect['key']
                                 if c > limit:
-                                    r = "%s (%u >= limit of %u)" % (name, c, limit)
+                                    r = "%s (%d >= limit of %d)" % (name, c, limit)
                                     bad_ips.append({'ip': i, 'reason': r, 'target': '*', 'rid': rid, 'epoch': int(time.time())})
                                     print("Found offender: %s; %s" % (i, r))
 
-        print("Done with rules after %u seconds, found %u offenders" % (time.time() - now, len(bad_ips)))
+        print("Done with rules after %d seconds, found %d offenders" % (time.time() - now, len(bad_ips)))
         # Now we have a list of bad IPs.
         # Compare against whitelist, filter out any that are there
         # Block the rest
