@@ -1,8 +1,0 @@
-########################################################################
-# SearchObject                                                         #
-########################################################################
-properties:
-  source:
-    type: string
-    description: IP Address or Network to search for
-
